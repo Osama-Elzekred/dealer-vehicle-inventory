@@ -1,0 +1,36 @@
+-- Sample data for testing the Inventory Module
+-- This script runs automatically on application startup (H2 in-memory database)
+
+-- Tenant 1: Dealers
+MERGE INTO dealer (id, tenant_id, name, email, subscription_type, created_at, updated_at)
+KEY (id)
+VALUES
+    ('a1111111-1111-1111-1111-111111111111', 'tenant-1', 'Premium Auto Sales', 'premium@dealer1.com', 'PREMIUM', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('a2222222-2222-2222-2222-222222222222', 'tenant-1', 'Basic Motors', 'basic@dealer1.com', 'BASIC', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('a3333333-3333-3333-3333-333333333333', 'tenant-1', 'Elite Vehicles', 'elite@dealer1.com', 'PREMIUM', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+-- Tenant 2: Dealers
+MERGE INTO dealer (id, tenant_id, name, email, subscription_type, created_at, updated_at)
+KEY (id)
+VALUES
+    ('b1111111-1111-1111-1111-111111111111', 'tenant-2', 'City Auto Group', 'city@dealer2.com', 'PREMIUM', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('b2222222-2222-2222-2222-222222222222', 'tenant-2', 'Budget Cars', 'budget@dealer2.com', 'BASIC', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+-- Tenant 1: Vehicles
+MERGE INTO vehicle (id, tenant_id, dealer_id, model, price, status, created_at, updated_at)
+KEY (id)
+VALUES
+    ('c1111111-1111-1111-1111-111111111111', 'tenant-1', 'a1111111-1111-1111-1111-111111111111', 'Tesla Model S', 89990.00, 'AVAILABLE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('c2222222-2222-2222-2222-222222222222', 'tenant-1', 'a1111111-1111-1111-1111-111111111111', 'BMW M5', 103500.00, 'AVAILABLE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('c3333333-3333-3333-3333-333333333333', 'tenant-1', 'a1111111-1111-1111-1111-111111111111', 'Porsche 911', 115000.00, 'SOLD', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('c4444444-4444-4444-4444-444444444444', 'tenant-1', 'a2222222-2222-2222-2222-222222222222', 'Toyota Camry', 25000.00, 'AVAILABLE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('c5555555-5555-5555-5555-555555555555', 'tenant-1', 'a2222222-2222-2222-2222-222222222222', 'Honda Civic', 22000.00, 'AVAILABLE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('c6666666-6666-6666-6666-666666666666', 'tenant-1', 'a3333333-3333-3333-3333-333333333333', 'Mercedes-AMG GT', 140000.00, 'AVAILABLE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+-- Tenant 2: Vehicles
+MERGE INTO vehicle (id, tenant_id, dealer_id, model, price, status, created_at, updated_at)
+KEY (id)
+VALUES
+    ('d1111111-1111-1111-1111-111111111111', 'tenant-2', 'b1111111-1111-1111-1111-111111111111', 'Audi RS7', 128000.00, 'AVAILABLE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('d2222222-2222-2222-2222-222222222222', 'tenant-2', 'b1111111-1111-1111-1111-111111111111', 'Lexus LC', 93000.00, 'SOLD', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('d3333333-3333-3333-3333-333333333333', 'tenant-2', 'b2222222-2222-2222-2222-222222222222', 'Ford Focus', 18000.00, 'AVAILABLE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
