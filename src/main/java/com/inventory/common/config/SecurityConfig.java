@@ -1,8 +1,9 @@
 package com.inventory.common.config;
 
 import com.inventory.common.security.JwtAuthenticationFilter;
-import com.inventory.common.security.RoleConstants;
+import com.inventory.common.security.Role;
 import com.inventory.common.security.TenantFilter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -17,15 +18,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final TenantFilter tenantFilter;
-
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, TenantFilter tenantFilter) {
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-        this.tenantFilter = tenantFilter;
-    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -39,7 +36,7 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/api-docs/**", "/v3/api-docs/**").permitAll()
-                        .requestMatchers("/admin/**").hasRole(RoleConstants.GLOBAL_ADMIN)
+                        .requestMatchers("/admin/**").hasRole(Role.GLOBAL_ADMIN.getName())
                         .requestMatchers("/dealers/**", "/vehicles/**").authenticated()
                         .anyRequest().permitAll()
                 )

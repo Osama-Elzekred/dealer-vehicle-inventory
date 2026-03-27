@@ -28,18 +28,17 @@ import java.util.UUID;
 public class DealerServiceImpl implements DealerService {
 
     private final DealerRepository dealerRepository;
-    private final DealerMapper dealerMapper;
 
     @Override
     public DealerResponse createDealer(CreateDealerRequest request) {
         String tenantId = getCurrentTenantId();
         log.debug("Creating dealer for tenant: {}", tenantId);
 
-        Dealer dealer = dealerMapper.toEntity(request, tenantId);
+        Dealer dealer = DealerMapper.toEntity(request, tenantId);
         dealer = dealerRepository.save(dealer);
 
         log.info("Created dealer: {} for tenant: {}", dealer.getId(), tenantId);
-        return dealerMapper.toResponse(dealer);
+        return DealerMapper.toResponse(dealer);
     }
 
     @Override
@@ -51,7 +50,7 @@ public class DealerServiceImpl implements DealerService {
         Dealer dealer = dealerRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Dealer", "id", id));
 
-        return dealerMapper.toResponse(dealer);
+        return DealerMapper.toResponse(dealer);
     }
 
     @Override
@@ -61,7 +60,7 @@ public class DealerServiceImpl implements DealerService {
         log.debug("Fetching all dealers for tenant: {}", tenantId);
 
         return dealerRepository.findByTenantId(tenantId, pageable)
-                .map(dealerMapper::toResponse);
+                .map(DealerMapper::toResponse);
     }
 
     @Override
@@ -85,7 +84,7 @@ public class DealerServiceImpl implements DealerService {
         dealer = dealerRepository.save(dealer);
         log.info("Updated dealer: {} for tenant: {}", id, tenantId);
 
-        return dealerMapper.toResponse(dealer);
+        return DealerMapper.toResponse(dealer);
     }
 
     @Override

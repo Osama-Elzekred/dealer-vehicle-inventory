@@ -3,12 +3,13 @@ package com.inventory.dealer.mapper;
 import com.inventory.dealer.dto.CreateDealerRequest;
 import com.inventory.dealer.dto.DealerResponse;
 import com.inventory.dealer.entity.Dealer;
-import org.springframework.stereotype.Component;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
-@Component
-public class DealerMapper {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class DealerMapper {
 
-    public Dealer toEntity(CreateDealerRequest request, String tenantId) {
+    public static Dealer toEntity(CreateDealerRequest request, String tenantId) {
         return Dealer.builder()
                 .tenantId(tenantId)
                 .name(request.getName())
@@ -17,7 +18,7 @@ public class DealerMapper {
                 .build();
     }
 
-    public DealerResponse toResponse(Dealer dealer) {
+    public static DealerResponse toResponse(Dealer dealer) {
         return DealerResponse.builder()
                 .id(dealer.getId())
                 .tenantId(dealer.getTenantId())

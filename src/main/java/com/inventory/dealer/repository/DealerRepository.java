@@ -21,11 +21,7 @@ public interface DealerRepository extends JpaRepository<Dealer, UUID> {
 
     boolean existsByIdAndTenantId(UUID id, String tenantId);
 
-    @Query("SELECT COUNT(d) FROM Dealer d WHERE d.subscriptionType = :type")
-    long countBySubscriptionType(@Param("type") SubscriptionType type);
+    long countBySubscriptionType(SubscriptionType type);
 
-    @Query("SELECT COUNT(d) FROM Dealer d WHERE d.subscriptionType = :type AND d.tenantId = :tenantId")
     long countBySubscriptionTypeAndTenantId(@Param("type") SubscriptionType type, @Param("tenantId") String tenantId);
-
-    void deleteByIdAndTenantId(UUID id, String tenantId);
 }

@@ -12,6 +12,7 @@ import com.inventory.vehicle.dto.VehicleResponse;
 import com.inventory.vehicle.entity.Vehicle;
 import com.inventory.vehicle.mapper.VehicleMapper;
 import com.inventory.vehicle.repository.VehicleRepository;
+import com.inventory.vehicle.repository.VehicleSpecification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -29,7 +30,6 @@ public class VehicleServiceImpl implements VehicleService {
 
     private final VehicleRepository vehicleRepository;
     private final DealerRepository dealerRepository;
-    private final VehicleMapper vehicleMapper;
 
     @Override
     public VehicleResponse createVehicle(CreateVehicleRequest request) {
@@ -40,11 +40,11 @@ public class VehicleServiceImpl implements VehicleService {
         Dealer dealer = dealerRepository.findByIdAndTenantId(request.getDealerId(), tenantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Dealer", "id", request.getDealerId()));
 
-        Vehicle vehicle = vehicleMapper.toEntity(request, tenantId, dealer);
+        Vehicle vehicle = VehicleMapper.toEntity(request, tenantId, dealer);
         vehicle = vehicleRepository.save(vehicle);
 
         log.info("Created vehicle: {} for tenant: {}", vehicle.getId(), tenantId);
-        return vehicleMapper.toResponse(vehicle);
+        return VehicleMapper.toResponse(vehicle);
     }
 
     @Override
@@ -56,7 +56,7 @@ public class VehicleServiceImpl implements VehicleService {
         Vehicle vehicle = vehicleRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Vehicle", "id", id));
 
-        return vehicleMapper.toResponse(vehicle);
+        return VehicleMapper.toResponse(vehicle);
     }
 
     @Override
@@ -65,17 +65,12 @@ public class VehicleServiceImpl implements VehicleService {
         String tenantId = getCurrentTenantId();
         log.debug("Fetching vehicles for tenant: {} with filters: {}", tenantId, filter);
 
-        Page<Vehicle> vehicles = vehicleRepository.findByFilters(
-                tenantId,
-                filter.getModel(),
-                filter.getStatus(),
-                filter.getPriceMin(),
-                filter.getPriceMax(),
-                filter.getSubscription(),
+        Page<Vehicle> vehicles = vehicleRepository.findAll(
+                VehicleSpecification.withFilters(tenantId, filter),
                 pageable
         );
 
-        return vehicles.map(vehicleMapper::toResponse);
+        return vehicles.map(VehicleMapper::toResponse);
     }
 
     @Override
@@ -104,7 +99,7 @@ public class VehicleServiceImpl implements VehicleService {
         vehicle = vehicleRepository.save(vehicle);
         log.info("Updated vehicle: {} for tenant: {}", id, tenantId);
 
-        return vehicleMapper.toResponse(vehicle);
+        return VehicleMapper.toResponse(vehicle);
     }
 
     @Override

@@ -1,13 +1,14 @@
 package com.inventory.dealer.service;
 
-import com.inventory.dealer.dto.CreateDealerRequest;
-import com.inventory.dealer.dto.DealerResponse;
-import com.inventory.dealer.dto.UpdateDealerRequest;
+import java.util.Map;
+import java.util.UUID;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import java.util.Map;
-import java.util.UUID;
+import com.inventory.dealer.dto.CreateDealerRequest;
+import com.inventory.dealer.dto.DealerResponse;
+import com.inventory.dealer.dto.UpdateDealerRequest;
 
 public interface DealerService {
 

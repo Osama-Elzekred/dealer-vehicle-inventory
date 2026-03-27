@@ -1,18 +1,8 @@
 package com.inventory.vehicle.controller;
 
-import com.inventory.common.web.PageResponse;
-import com.inventory.dealer.entity.SubscriptionType;
-import com.inventory.vehicle.dto.CreateVehicleRequest;
-import com.inventory.vehicle.dto.UpdateVehicleRequest;
-import com.inventory.vehicle.dto.VehicleFilterRequest;
-import com.inventory.vehicle.dto.VehicleResponse;
-import com.inventory.vehicle.entity.VehicleStatus;
-import com.inventory.vehicle.service.VehicleService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import java.math.BigDecimal;
+import java.util.UUID;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -29,8 +19,20 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.math.BigDecimal;
-import java.util.UUID;
+import com.inventory.common.web.PageResponse;
+import com.inventory.dealer.entity.SubscriptionType;
+import com.inventory.vehicle.dto.CreateVehicleRequest;
+import com.inventory.vehicle.dto.UpdateVehicleRequest;
+import com.inventory.vehicle.dto.VehicleFilterRequest;
+import com.inventory.vehicle.dto.VehicleResponse;
+import com.inventory.vehicle.entity.VehicleStatus;
+import com.inventory.vehicle.service.VehicleService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/vehicles")
@@ -39,6 +41,7 @@ import java.util.UUID;
 public class VehicleController {
 
     private final VehicleService vehicleService;
+    
 
     @PostMapping
     @Operation(summary = "Create a new vehicle",

@@ -1,13 +1,9 @@
 package com.inventory.common.security;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.inventory.common.exception.ErrorResponse;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
@@ -18,17 +14,21 @@ import org.springframework.util.AntPathMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.inventory.common.exception.ErrorResponse;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * Filter that validates X-Tenant-Id header for protected endpoints.
+ * Filter that validates tenant context for protected endpoints.
  *
- * Requirements:
- * - Missing X-Tenant-Id → 400 Bad Request
- * - Cross-tenant access blocked → 403 Forbidden
- * - Admin endpoints require GLOBAL_ADMIN role
+ * For regular endpoints: Requires X-Tenant-Id header and validates it against JWT token tenant
+ * For admin endpoints: GLOBAL_ADMIN can optionally use X-Tenant-Id header to query specific tenant data
  */
 @Slf4j
 @Component
@@ -67,49 +67,37 @@ public class TenantFilter extends OncePerRequestFilter {
             return;
         }
 
-        // For admin paths, tenant header is optional (for per-tenant queries)
+        // For admin paths, GLOBAL_ADMIN can optionally use X-Tenant-Id header
         if (isAdminPath(path)) {
             handleAdminPath(request, response, filterChain);
             return;
         }
 
         // For regular paths, X-Tenant-Id header is REQUIRED
-        String tenantId = request.getHeader(TENANT_HEADER);
-        if (!StringUtils.hasText(tenantId)) {
+        String headerTenantId = request.getHeader(TENANT_HEADER);
+        if (!StringUtils.hasText(headerTenantId)) {
             log.warn("Missing X-Tenant-Id header for path: {}", path);
-            sendErrorResponse(response, HttpStatus.BAD_REQUEST, "Missing required header: X-Tenant-Id");
+            sendErrorResponse(response, HttpStatus.BAD_REQUEST,
+                "Missing required header: X-Tenant-Id");
             return;
         }
 
-        // Validate tenant matches authenticated user's tenant (if authenticated)
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated()
-                && !"anonymousUser".equals(authentication.getPrincipal())) {
+        // Get tenant from JWT token (set by JwtAuthenticationFilter)
+        String tokenTenantId = TenantContext.getTenantId();
 
-            // Allow GLOBAL_ADMIN to access any tenant
-            boolean isGlobalAdmin = authentication.getAuthorities().stream()
-                    .map(GrantedAuthority::getAuthority)
-                    .anyMatch(role -> role.equals(RoleConstants.ROLE_GLOBAL_ADMIN));
-
-            if (!isGlobalAdmin) {
-                // For regular users, the tenant from header must match their token's tenant
-                String tokenTenant = TenantContext.getTokenTenantId();
-                if (tokenTenant != null && !tokenTenant.equals(tenantId)) {
-                    log.warn("Cross-tenant access blocked: token={}, header={}", tokenTenant, tenantId);
-                    sendErrorResponse(response, HttpStatus.FORBIDDEN,
-                            "Access denied: Cannot access resources of different tenant");
-                    return;
-                }
-            }
+        // Validate that header tenant matches token tenant (prevent tenant spoofing)
+        if (StringUtils.hasText(tokenTenantId) && !tokenTenantId.equals(headerTenantId)) {
+            log.warn("Tenant mismatch - Header: {}, Token: {}", headerTenantId, tokenTenantId);
+            sendErrorResponse(response, HttpStatus.FORBIDDEN,
+                "Access denied: X-Tenant-Id does not match authenticated user's tenant");
+            return;
         }
 
-        // Set the tenant context from header
-        TenantContext.setTenantId(tenantId);
-        try {
-            filterChain.doFilter(request, response);
-        } finally {
-            TenantContext.clear();
-        }
+        // Set tenant context from header (this takes precedence)
+        TenantContext.setTenantId(headerTenantId);
+        log.debug("Processing request for tenant: {}, path: {}", headerTenantId, path);
+
+        filterChain.doFilter(request, response);
     }
 
     private void handleAdminPath(HttpServletRequest request,
@@ -117,36 +105,32 @@ public class TenantFilter extends OncePerRequestFilter {
                                   FilterChain filterChain) throws ServletException, IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        // Verify user is authenticated
-        if (authentication == null || !authentication.isAuthenticated()
-                || "anonymousUser".equals(authentication.getPrincipal())) {
+        // Verify user is GLOBAL_ADMIN for admin paths
+        if (authentication == null || !authentication.isAuthenticated()) {
             sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "Authentication required");
             return;
         }
 
-        // Verify user is GLOBAL_ADMIN for admin paths
         boolean isGlobalAdmin = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
-                .anyMatch(role -> role.equals(RoleConstants.ROLE_GLOBAL_ADMIN));
+                .anyMatch(Role.GLOBAL_ADMIN::matches);
 
         if (!isGlobalAdmin) {
             log.warn("Non-admin user attempted to access admin path");
-            sendErrorResponse(response, HttpStatus.FORBIDDEN, "Access denied: GLOBAL_ADMIN role required");
+            sendErrorResponse(response, HttpStatus.FORBIDDEN,
+                "Access denied: GLOBAL_ADMIN role required");
             return;
         }
 
-        // For admin paths, X-Tenant-Id is optional (for per-tenant queries)
-        String tenantId = request.getHeader(TENANT_HEADER);
-        if (StringUtils.hasText(tenantId)) {
-            TenantContext.setTenantId(tenantId);
-            log.debug("Admin using tenant context: {}", tenantId);
+        // GLOBAL_ADMIN can optionally use X-Tenant-Id header for per-tenant queries
+        String headerTenantId = request.getHeader(TENANT_HEADER);
+        if (StringUtils.hasText(headerTenantId)) {
+            // Override tenant context with header value for this request
+            TenantContext.setTenantId(headerTenantId);
+            log.debug("Admin override: using tenant {} from header", headerTenantId);
         }
 
-        try {
-            filterChain.doFilter(request, response);
-        } finally {
-            TenantContext.clear();
-        }
+        filterChain.doFilter(request, response);
     }
 
     private boolean isExcludedPath(String path) {

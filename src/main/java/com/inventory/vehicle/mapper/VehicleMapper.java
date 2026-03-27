@@ -4,12 +4,13 @@ import com.inventory.dealer.entity.Dealer;
 import com.inventory.vehicle.dto.CreateVehicleRequest;
 import com.inventory.vehicle.dto.VehicleResponse;
 import com.inventory.vehicle.entity.Vehicle;
-import org.springframework.stereotype.Component;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
-@Component
-public class VehicleMapper {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class VehicleMapper {
 
-    public Vehicle toEntity(CreateVehicleRequest request, String tenantId, Dealer dealer) {
+    public static Vehicle toEntity(CreateVehicleRequest request, String tenantId, Dealer dealer) {
         return Vehicle.builder()
                 .tenantId(tenantId)
                 .dealer(dealer)
@@ -19,7 +20,7 @@ public class VehicleMapper {
                 .build();
     }
 
-    public VehicleResponse toResponse(Vehicle vehicle) {
+    public static VehicleResponse toResponse(Vehicle vehicle) {
         return VehicleResponse.builder()
                 .id(vehicle.getId())
                 .tenantId(vehicle.getTenantId())

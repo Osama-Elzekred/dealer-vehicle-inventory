@@ -3,7 +3,7 @@ package com.inventory.auth.controller;
 import com.inventory.auth.dto.LoginRequest;
 import com.inventory.auth.dto.TokenResponse;
 import com.inventory.common.security.JwtTokenProvider;
-import com.inventory.common.security.RoleConstants;
+import com.inventory.common.security.Role;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -28,23 +28,19 @@ public class AuthController {
     @Operation(summary = "Generate JWT token",
             description = "Generate a JWT token for testing. Use role 'TENANT_USER' or 'GLOBAL_ADMIN'")
     public ResponseEntity<TokenResponse> login(@Valid @RequestBody LoginRequest request) {
-        String role = request.getRole().toUpperCase();
-        
-        if (!role.equals(RoleConstants.TENANT_USER) && !role.equals(RoleConstants.GLOBAL_ADMIN)) {
-            throw new IllegalArgumentException("Invalid role. Must be TENANT_USER or GLOBAL_ADMIN");
-        }
+        Role role = Role.fromString(request.getRole());
 
         String token = jwtTokenProvider.generateToken(
                 request.getUsername(),
                 request.getTenantId(),
-                List.of(role)
+                List.of(role.getName())
         );
 
         TokenResponse response = TokenResponse.builder()
                 .token(token)
                 .username(request.getUsername())
                 .tenantId(request.getTenantId())
-                .role(role)
+                .role(role.getName())
                 .build();
 
         return ResponseEntity.ok(response);

@@ -1,11 +1,8 @@
 package com.inventory.common.security;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.util.Collection;
+
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,8 +11,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
-import java.util.Collection;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
@@ -45,18 +46,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                // Store tenant ID from token for reference (used for validation against header)
+                // Always set tenant ID from token - this is the source of truth
                 if (tenantId != null) {
-                    TenantContext.setTokenTenantId(tenantId);
+                    TenantContext.setTenantId(tenantId);
                 }
 
-                log.debug("Authenticated user: {}, token tenant: {}", username, tenantId);
+                log.debug("Authenticated user: {}, tenant: {}", username, tenantId);
             }
         } catch (Exception ex) {
             log.error("Could not set user authentication in security context", ex);
         }
 
-        filterChain.doFilter(request, response);
+        try {
+            filterChain.doFilter(request, response);
+        } finally {
+            // Clear tenant context after request completes
+            TenantContext.clear();
+        }
     }
 
     private String extractJwtFromRequest(HttpServletRequest request) {
