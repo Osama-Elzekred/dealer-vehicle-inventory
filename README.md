@@ -156,14 +156,4 @@ See `SUBMISSION_TEST_EVIDENCE.md` for detailed test results.
 **Entity** → JPA models with audit support
 **Security** → JWT + X-Tenant-Id validation
 
-## Submission
-
-**To**: mytask@dealersautocenter.com
-**Subject**: `BackEnd Task / Osama [Last Name]`
-
-**Include:**
-- Source code
-- `SUBMISSION_TEST_EVIDENCE.md`
-- Updated resume (PDF)
-- How to run/test instructions
 
