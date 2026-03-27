@@ -90,7 +90,7 @@ public class VehicleController {
             @Parameter(description = "Filter by dealer's subscription type")
             @RequestParam(required = false) SubscriptionType subscription,
 
-            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC)
+            @PageableDefault(size = 10, sort = "auditable.createdAt", direction = Sort.Direction.DESC)
             Pageable pageable) {
 
         VehicleFilterRequest filter = VehicleFilterRequest.builder()

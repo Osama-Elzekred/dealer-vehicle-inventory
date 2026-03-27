@@ -75,7 +75,10 @@ public final class VehicleSpecification {
 
     public static Specification<Vehicle> withFilters(String tenantId, VehicleFilterRequest filter) {
         return (root, query, cb) -> {
-            query.distinct(true);
+            // Only set distinct for non-count queries
+            if (query.getResultType() != Long.class && query.getResultType() != long.class) {
+                query.distinct(true);
+            }
             return Specification.where(withTenantId(tenantId))
                     .and(withModel(filter.getModel()))
                     .and(withStatus(filter.getStatus()))

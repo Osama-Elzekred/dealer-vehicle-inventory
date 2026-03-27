@@ -1,15 +1,7 @@
 package com.inventory.dealer.controller;
 
-import com.inventory.common.web.PageResponse;
-import com.inventory.dealer.dto.CreateDealerRequest;
-import com.inventory.dealer.dto.DealerResponse;
-import com.inventory.dealer.dto.UpdateDealerRequest;
-import com.inventory.dealer.service.DealerService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import java.util.UUID;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -25,7 +17,17 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.UUID;
+import com.inventory.common.web.PageResponse;
+import com.inventory.dealer.dto.CreateDealerRequest;
+import com.inventory.dealer.dto.DealerResponse;
+import com.inventory.dealer.dto.UpdateDealerRequest;
+import com.inventory.dealer.service.DealerService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/dealers")
@@ -56,7 +58,7 @@ public class DealerController {
     @Operation(summary = "Get all dealers",
             description = "Retrieves all dealers for the current tenant with pagination and sorting")
     public ResponseEntity<PageResponse<DealerResponse>> getAllDealers(
-            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC)
+            @PageableDefault(size = 10, sort = "auditable.createdAt", direction = Sort.Direction.DESC)
             Pageable pageable) {
         Page<DealerResponse> page = dealerService.getAllDealers(pageable);
         return ResponseEntity.ok(PageResponse.of(page));
